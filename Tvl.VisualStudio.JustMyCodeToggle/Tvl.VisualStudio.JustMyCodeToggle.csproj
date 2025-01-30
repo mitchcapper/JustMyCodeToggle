@@ -1,12 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net472</TargetFramework>
+		<TargetFramework>net480</TargetFramework>
 
 		<AppDesignerFolder>Properties</AppDesignerFolder>
 		<Description>Adds the Just My Code command button to Visual Studio.</Description>
 		<Company>Tunnel Vision Laboratories, LLC</Company>
 		<Copyright>Copyright © Sam Harwell 2017</Copyright>
 		<Version>1.4.0.0</Version>
+		<LangVersion>preview</LangVersion>
 		<FileVersion>1.4.0.0</FileVersion>
 		<InformationalVersion>1.4.0-dev</InformationalVersion>
 		<GeneratePkgDefFile>true</GeneratePkgDefFile>
@@ -36,17 +37,34 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta008" PrivateAssets="all" />
+		<PackageReference Include="CI.Microsoft.VisualStudio.ProjectSystem.Managed" Version="17.7.37.99" />
+		<PackageReference Include="Microsoft.Build" Version="17.7.0" />
+		<PackageReference Include="Microsoft.VisualStudio.ProjectSystem" Version="17.9.380" />
+		<PackageReference Include="Microsoft.VisualStudio.ProjectSystem.Query" Version="17.9.380" />
+		<PackageReference Include="Microsoft.VisualStudio.ProjectSystem.SDK" Version="17.9.380" />
+		<PackageReference Include="Microsoft.VisualStudio.ProjectSystem.Sdk.Tools" Version="17.9.380">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	  <None Remove="JustMyCodeToggle.vsct" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Community.VisualStudio.Toolkit.17" Version="17.0.527" ExcludeAssets="Runtime">
+			<IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="MessagePack" Version="2.5.192" />
 		<AdditionalFiles Include="$(MSBuildThisFileDirectory)..\stylecop.json" Link="stylecop.json" />
 		<None Include="$(CodeAnalysisRuleSet)" Condition="'$(CodeAnalysisRuleSet)' != ''" Link="%(Filename)%(Extension)" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.32112.339" ExcludeAssets="runtime" />
-		<PackageReference Include="Microsoft.VSSDK.BuildTools" PrivateAssets="All" Version="17.5.4065" />
+		<PackageReference Include="Microsoft.VSSDK.BuildTools" PrivateAssets="All" Version="17.12.2069" />
+		<PackageReference Include="Community.VisualStudio.VSCT" Version="16.0.29.6" PrivateAssets="all" />		
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="$(MSBuildProjectFileDirectory)$(AssemblyOriginatorKeyFile)" Link="%(Filename)%(Extension)" />
 		<None Include="source.extension.vsixmanifest">
 			<SubType>Designer</SubType>
+			<Generator>VsixManifestGenerator</Generator>
 		</None>
 	</ItemGroup>
 	<ItemGroup>
@@ -54,6 +72,14 @@
 			<Link>LICENSE.txt</Link>
 			<IncludeInVSIX>true</IncludeInVSIX>
 		</Content>
+		<EmbeddedResource Include="JustMyCodeToggle.vsct">
+		  <Generator>VsctGenerator</Generator>
+		  <LastGenOutput>JustMyCodeToggle.cs</LastGenOutput>
+		</EmbeddedResource>
+		<EmbeddedResource Include="source.extension.vsixmanifest">
+			<Generator>VsixManifestGenerator</Generator>
+			<LastGenOutput>source.extension.cs</LastGenOutput>
+		</EmbeddedResource>
 	</ItemGroup>
 	<ItemGroup>
 		<VSCTCompile Include="JustMyCodeToggle.vsct">
@@ -62,6 +88,19 @@
 		</VSCTCompile>
 	</ItemGroup>
 	<ItemGroup>
+	  <Compile Update="JustMyCodeToggle.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>JustMyCodeToggle.vsct</DependentUpon>
+	  </Compile>
+	  <Compile Update="source.extension.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>source.extension.vsixmanifest</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+	
+	<ItemGroup>
 		<EmbeddedResource Update="VSPackage.resx">
 			<LogicalName>VSPackage.resources</LogicalName>
 			<MergeWithCTO>true</MergeWithCTO>
@@ -69,4 +108,12 @@
 	</ItemGroup>
 	<Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
 	<Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
+	<PropertyGroup>
+		<GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
+	</PropertyGroup>
+	<Target Name="IncludeNuGetResolvedAssets" AfterTargets="GetVsixSourceItems">
+		<ItemGroup>
+			<VSIXCopyLocalReferenceSourceItem Include="@(ReferenceCopyLocalPaths)" />
+		</ItemGroup>
+	</Target>
 </Project>
